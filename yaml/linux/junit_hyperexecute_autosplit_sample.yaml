@@ -1,53 +1,19 @@
 ---
-version: 0.1
-globalTimeout: 150
-testSuiteTimeout: 150
-testSuiteStep: 150
-
+version: "0.1"
 runson: linux
-
-runtime: 
-  language: java
-  version: 21
-
-autosplit: true
+concurrency: 1
 retryOnFailure: false
-
-maxRetries: 1
-concurrency: 2
-
-env:
-  # PAT: ${{ .secrets.testKey }}
-  TARGET_OS: linux
-
-cacheKey: '{{ checksum "pom.xml" }}'
-cacheDirectories:
-  - .m2
-
-shell: bash
-
+maxRetries: 0
+globalTimeout: 10
+testSuiteTimeout: 10
+testSuiteStep: 5
+runtime:
+  language: python
+  version: "3.10"
 pre:
-  # install playwright version to be used.
-  - npm install playwright@1.57.0 --save-exact
-  # Download and install packages in the CACHE_DIR.
-  # Skip execution of the tests in the pre step
-  - mvn -Dmaven.repo.local=./.m2 -Dmaven.test.skip=true clean install
-
-post:
-  - cat yaml/linux/junit_hyperexecute_autosplit_sample.yaml
-
-mergeArtifacts: true
-
-uploadArtefacts:
- - name: Surefire-Report
-   path:
-    - target/surefire-reports/**
-
+  - pip install pytest
 testDiscovery:
   type: raw
-  mode: remote
-  command: grep -rl '@ParameterizedTest' src/test/java | awk -F'/' '{print substr($NF, 1, length($NF)-5)}'
-
-testRunnerCommand: mvn -Dplatname=linux -Dmaven.repo.local=./.m2 -Dtest=$test test surefire-report:report
-
-jobLabel: [playwright-Junit, linux, autosplit] 
+  mode: dynamic
+  command: ls cases/pass.sh
+testRunnerCommand: bash cases/pass.sh
